@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="智搭 BrickMind：从一句话需求生成积木设计图、成品效果、搭建说明与零件订购清单。">
+  <title>智搭 BrickMind · AI 积木设计工作台</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="./" aria-label="智搭首页">
+        <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+        <span class="brand-name">智搭 <b>BRICKMIND</b></span>
+      </a>
+      <nav class="topnav" aria-label="主导航">
+        <button class="nav-item active" id="studioNav">AI 设计工作台</button>
+        <button class="nav-item" id="libraryBtn">我的方案 <span id="savedCount">0</span></button>
+      </nav>
+      <div class="top-actions">
+        <span class="local-badge"><span class="status-dot"></span> 本地智能引擎</span>
+        <button class="icon-button" id="helpBtn" aria-label="使用帮助" title="使用帮助">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M9.8 9a2.4 2.4 0 0 1 4.65.8c0 1.8-2.45 2-2.45 3.7"></path><path d="M12 17h.01"></path></svg>
+        </button>
+        <span class="avatar" title="个人工作区">BM</span>
+      </div>
+    </header>
+
+    <main class="workspace">
+      <aside class="control-panel">
+        <div class="panel-heading">
+          <div>
+            <span class="eyebrow">CREATE WITH AI</span>
+            <h1>先描述，再微调</h1>
+          </div>
+          <span class="ai-badge">AI</span>
+        </div>
+        <p class="panel-intro">告诉我你想搭什么，剩下的交给智搭。</p>
+
+        <form id="designForm">
+          <label class="field-label" for="prompt">你的创意</label>
+          <div class="prompt-box">
+            <textarea id="prompt" rows="4" maxlength="240">设计一座蓝橙配色的火星前哨站，适合 8 岁孩子，600 元以内</textarea>
+            <span class="prompt-count"><span id="promptCount">34</span>/240</span>
+          </div>
+          <div class="example-list" aria-label="示例需求">
+            <button type="button" class="example-chip" data-prompt="设计一架橙白色的星际探索车，中等难度，预算 400 元">星际探索车</button>
+            <button type="button" class="example-chip" data-prompt="生成一个蓝绿色的机械恐龙，造型可爱，300 元以内">机械恐龙</button>
+            <button type="button" class="example-chip" data-prompt="做一座奶油色的湖边观景台，简单一些，适合亲子搭建">湖边观景台</button>
+          </div>
+
+          <div class="form-grid">
+            <div class="field-group">
+              <label class="field-label" for="modelType">模型类型</label>
+              <select id="modelType">
+                <option value="space">太空基地</option>
+                <option value="architecture">建筑场景</option>
+                <option value="vehicle">未来车辆</option>
+                <option value="robot">机器人</option>
+                <option value="animal">机械动物</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label class="field-label" for="difficulty">搭建难度</label>
+              <select id="difficulty">
+                <option value="easy">轻松入门</option>
+                <option value="medium" selected>进阶挑战</option>
+                <option value="hard">细节大师</option>
+              </select>
+            </div>
+          </div>
+
+          <label class="field-label">模型规格</label>
+          <div class="segmented" id="sizeControl" role="group" aria-label="模型规格">
+            <button type="button" data-value="small">小巧</button>
+            <button type="button" data-value="medium" class="selected">标准</button>
+            <button type="button" data-value="large">震撼</button>
+          </div>
+
+          <div class="palette-heading">
+            <label class="field-label">主题配色</label>
+            <span id="paletteName">星际蓝橙</span>
+          </div>
+          <div class="palette-list" id="paletteControl" role="group" aria-label="主题配色">
+            <button type="button" class="palette selected" data-value="cosmic" aria-label="星际蓝橙" title="星际蓝橙"><i style="--swatch:#2457e6"></i><i style="--swatch:#ff8a3d"></i><i style="--swatch:#f4f1e8"></i></button>
+            <button type="button" class="palette" data-value="forest" aria-label="森林绿意" title="森林绿意"><i style="--swatch:#25765a"></i><i style="--swatch:#a4c86a"></i><i style="--swatch:#f2e6c9"></i></button>
+            <button type="button" class="palette" data-value="candy" aria-label="糖果乐园" title="糖果乐园"><i style="--swatch:#e86a92"></i><i style="--swatch:#7d67d9"></i><i style="--swatch:#ffd166"></i></button>
+            <button type="button" class="palette" data-value="mono" aria-label="极简黑白" title="极简黑白"><i style="--swatch:#263238"></i><i style="--swatch:#90a4ae"></i><i style="--swatch:#eceff1"></i></button>
+          </div>
+
+          <div class="budget-row">
+            <label class="field-label" for="budget">预算上限</label>
+            <div class="budget-input"><span>¥</span><input id="budget" type="number" min="99" max="9999" value="600" step="50"></div>
+          </div>
+
+          <button class="generate-button" type="submit" id="generateBtn">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5L12 3Z"></path><path d="m19 15 .8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8L19 15Z"></path></svg>
+            <span>生成我的积木方案</span>
+            <kbd>Enter</kbd>
+          </button>
+          <p class="form-note">生成过程在本机完成，不上传你的创意内容</p>
+        </form>
+
+        <div class="workflow-card">
+          <div class="workflow-title"><span>从灵感到实物</span><span class="tiny-tag">一体化</span></div>
+          <ol class="workflow-list">
+            <li class="done"><span>1</span><div><b>理解需求</b><small>识别类型、配色与预算</small></div></li>
+            <li class="done"><span>2</span><div><b>生成并校验</b><small>结构、图纸与零件同步</small></div></li>
+            <li><span>3</span><div><b>确认后订购</b><small>按需分拣，交付到手中</small></div></li>
+          </ol>
+        </div>
+      </aside>
+
+      <section class="studio-panel">
+        <div class="project-header">
+          <div>
+            <div class="project-kicker"><span class="status-dot"></span><span id="projectStatus">方案已就绪</span><span class="divider-dot">·</span><span id="projectId">BM-26001</span></div>
+            <h2 id="projectName">火星前哨站</h2>
+          </div>
+          <div class="project-actions">
+            <button class="secondary-button" id="saveBtn">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h10l3 3v15H5V3h1Z"></path><path d="M8 3v6h8V3M8 21v-7h8v7"></path></svg>
+              保存
+            </button>
+            <details class="export-menu" id="exportMenu">
+              <summary class="secondary-button">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m-4-4 4 4 4-4M5 19h14"></path></svg>
+                导出
+              </summary>
+              <div class="dropdown">
+                <button id="exportPng">成品效果图 PNG</button>
+                <button id="exportSvg">当前层设计图 SVG</button>
+                <button id="exportCsv">零件清单 CSV</button>
+                <button id="exportManual">打印 / 保存说明书</button>
+                <button id="exportJson">完整方案数据 JSON</button>
+              </div>
+            </details>
+          </div>
+        </div>
+
+        <div class="metrics-row">
+          <div class="metric"><span class="metric-icon blue"><svg viewBox="0 0 24 24"><path d="m12 3 8 4-8 4-8-4 8-4Z"></path><path d="m4 12 8 4 8-4M4 17l8 4 8-4"></path></svg></span><div><small>零件总数</small><strong id="pieceMetric">—</strong><span>件</span></div></div>
+          <div class="metric"><span class="metric-icon orange"><svg viewBox="0 0 24 24"><path d="M4 5h16v14H4zM8 3v4M16 3v4M4 10h16"></path></svg></span><div><small>搭建步骤</small><strong id="stepMetric">—</strong><span>步</span></div></div>
+          <div class="metric"><span class="metric-icon green"><svg viewBox="0 0 24 24"><path d="M4 18V9m5 9V5m5 13v-7m5 7V3"></path></svg></span><div><small>成品尺寸</small><strong class="dimension-value" id="dimensionMetric">—</strong></div></div>
+          <div class="metric"><span class="metric-icon violet"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg></span><div><small>预计用时</small><strong id="timeMetric">—</strong><span>分钟</span></div></div>
+        </div>
+
+        <div class="design-card">
+          <div class="design-tabs" role="tablist" aria-label="方案视图">
+            <button class="design-tab active" data-tab="effect" role="tab" aria-selected="true"><svg viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5 9-5Z"></path><path d="m3 12 9 5 9-5M3 16l9 5 9-5"></path></svg>成品效果</button>
+            <button class="design-tab" data-tab="blueprint" role="tab" aria-selected="false"><svg viewBox="0 0 24 24"><path d="M4 4h16v16H4zM4 10h16M10 4v16"></path></svg>设计图纸</button>
+            <button class="design-tab" data-tab="instructions" role="tab" aria-selected="false"><svg viewBox="0 0 24 24"><path d="M6 3h12v18H6zM9 8h6M9 12h6M9 16h4"></path></svg>搭建说明</button>
+            <button class="design-tab" data-tab="parts" role="tab" aria-selected="false"><svg viewBox="0 0 24 24"><path d="M4 6h16v14H4zM8 3h8v3M8 11h8M8 15h5"></path></svg>零件清单 <span class="tab-count" id="partsTabCount">0</span></button>
+          </div>
+
+          <div class="tab-panel active" id="effectPanel" role="tabpanel">
+            <div class="canvas-toolbar">
+              <div><span class="live-dot"></span> 可交互模型 <span class="toolbar-note">按层生成 · 真实零件计数</span></div>
+              <div class="view-tools">
+                <button id="rotateLeft" title="向左旋转" aria-label="向左旋转"><svg viewBox="0 0 24 24"><path d="M4 10a8 8 0 1 1 1 7M4 4v6h6"></path></svg></button>
+                <button id="rotateRight" title="向右旋转" aria-label="向右旋转"><svg viewBox="0 0 24 24"><path d="M20 10a8 8 0 1 0-1 7m1-13v6h-6"></path></svg></button>
+                <span></span>
+                <button id="zoomOut" title="缩小" aria-label="缩小">−</button>
+                <button id="zoomIn" title="放大" aria-label="放大">＋</button>
+                <button id="resetView" title="重置视角" aria-label="重置视角"><svg viewBox="0 0 24 24"><path d="M4 4h6M4 4v6M20 4h-6m6 0v6M4 20h6m-6 0v-6m16 6h-6m6 0v-6"></path></svg></button>
+              </div>
+            </div>
+            <div class="model-stage" id="modelStage">
+              <div class="stage-grid"></div>
+              <svg id="modelCanvas" viewBox="0 0 800 520" role="img" aria-label="积木成品等轴测效果图"></svg>
+              <div class="model-label"><span id="modelLabel">MARS OUTPOST 01</span><small>AI GENERATED MODEL</small></div>
+              <div class="generation-overlay" id="generationOverlay">
+                <div class="generator-orbit"><span></span><i></i><b></b></div>
+                <strong>正在构建你的积木世界</strong>
+                <p id="generationStatus">理解需求与结构约束…</p>
+                <div class="generation-progress"><i></i></div>
+              </div>
+            </div>
+            <div class="canvas-footer"><span><i class="legend-block primary"></i>主结构</span><span><i class="legend-block accent"></i>功能与装饰</span><span class="canvas-tip">拖动模型可旋转 · 滚轮缩放</span></div>
+          </div>
+
+          <div class="tab-panel" id="blueprintPanel" role="tabpanel" hidden>
+            <div class="subpanel-header">
+              <div><strong>分层平面设计图</strong><small>每个色块对应一个真实零件，可逐层核对</small></div>
+              <div class="layer-control"><button id="prevLayer" aria-label="上一层">‹</button><span id="layerLabel">第 1 层 / 共 1 层</span><button id="nextLayer" aria-label="下一层">›</button></div>
+            </div>
+            <div class="blueprint-wrap"><svg id="blueprintCanvas" viewBox="0 0 760 480" role="img" aria-label="分层积木设计图"></svg></div>
+            <div class="blueprint-legend"><span><i class="legend-line solid"></i>当前层零件</span><span><i class="legend-line dashed"></i>已搭建下层</span><span id="layerPieceCount">本层 0 件</span></div>
+          </div>
+
+          <div class="tab-panel" id="instructionsPanel" role="tabpanel" hidden>
+            <div class="subpanel-header">
+              <div><strong>分步搭建说明书</strong><small>跟着高亮零件，一步一步完成作品</small></div>
+              <button class="text-button" id="printManualBtn">打印说明书</button>
+            </div>
+            <div class="instructions-layout">
+              <div class="step-list" id="stepList"></div>
+              <div class="step-preview">
+                <div class="step-preview-title"><span id="stepPreviewLabel">STEP 01</span><small id="stepPreviewCount">新增 0 件</small></div>
+                <svg id="stepCanvas" viewBox="0 0 520 360" role="img" aria-label="当前搭建步骤预览"></svg>
+                <p id="stepDescription"></p>
+                <div class="step-actions"><button id="prevStep">上一步</button><button id="nextStep" class="primary-small">下一步</button></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="tab-panel" id="partsPanel" role="tabpanel" hidden>
+            <div class="subpanel-header parts-header">
+              <div><strong>零件 BOM 清单</strong><small>规格、颜色、数量与价格同源核算</small></div>
+              <label class="spare-toggle"><input type="checkbox" id="spareToggle" checked><span></span>包含 5% 备损</label>
+            </div>
+            <div class="parts-toolbar">
+              <div class="search-box"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"></circle><path d="m16 16 4 4"></path></svg><input id="partsSearch" type="search" placeholder="搜索零件编号或规格"></div>
+              <button class="text-button" id="downloadCsvBtn">下载 CSV</button>
+            </div>
+            <div class="parts-table-wrap">
+              <table class="parts-table">
+                <thead><tr><th>零件</th><th>规格 / 颜色</th><th>单价</th><th>数量</th><th>小计</th></tr></thead>
+                <tbody id="partsTableBody"></tbody>
+              </table>
+            </div>
+            <div class="parts-total"><span>共 <b id="skuCount">0</b> 种零件，订购 <b id="orderPieceCount">0</b> 件（含备损）</span><strong id="partsSubtotal">¥0.00</strong></div>
+          </div>
+        </div>
+        <p class="design-disclaimer">AI 方案用于创意与原型验证；大型、承重或公共展示结构需人工复核与实物打样。</p>
+      </section>
+
+      <aside class="order-panel">
+        <div class="order-heading"><div><span class="eyebrow">YOUR CREATION</span><h3>方案概览</h3></div><span class="ready-badge">可订购</span></div>
+        <div class="mini-preview"><svg id="miniCanvas" viewBox="0 0 340 190" aria-label="方案缩略图"></svg><span id="miniModelName">火星前哨站</span></div>
+        <div class="order-specs">
+          <div><span>模型类型</span><b id="summaryType">太空基地</b></div>
+          <div><span>配色方案</span><b id="summaryPalette">星际蓝橙</b></div>
+          <div><span>难度等级</span><b id="summaryDifficulty">进阶挑战</b></div>
+          <div><span>零件数量</span><b><span id="summaryPieces">0</span> 件</b></div>
+        </div>
+        <div class="price-card">
+          <div class="price-title"><span>预估整套价格</span><small>含设计服务</small></div>
+          <div class="main-price"><span>¥</span><strong id="totalPrice">0</strong><small>.00</small></div>
+          <div class="price-breakdown"><div><span>零件费用</span><span id="partPrice">¥0.00</span></div><div><span>设计服务</span><span>¥39.00</span></div><div><span>分拣包装</span><span>¥12.00</span></div><div><span>标准配送</span><span class="free-text">免费</span></div></div>
+          <div class="budget-status" id="budgetStatus"><svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"></path></svg><span>在预算范围内</span></div>
+        </div>
+        <button class="order-button" id="orderBtn"><span>按此清单订购</span><svg viewBox="0 0 24 24"><path d="M5 12h14m-5-5 5 5-5 5"></path></svg></button>
+        <button class="view-parts-button" id="viewPartsBtn">先查看完整零件清单</button>
+        <div class="service-notes"><div><svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"></path></svg>同源清单，避免漏订错订</div><div><svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"></path></svg>5% 备损零件，搭建更安心</div><div><svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"></path></svg>30 天方案补件支持</div></div>
+        <div class="tip-card"><span class="tip-icon">i</span><p><b>这是一个可运行原型</b><br>当前提交的是订购意向，不会真实扣款。接入库存与支付后即可投入实际交易。</p></div>
+      </aside>
+    </main>
+  </div>
+
+  <dialog id="orderDialog" class="modal order-modal">
+    <form method="dialog" class="modal-card" id="orderForm">
+      <button class="modal-close" value="cancel" aria-label="关闭">×</button>
+      <span class="eyebrow">ORDER REQUEST</span>
+      <h2>确认订购意向</h2>
+      <p class="modal-intro">我们会按当前方案锁定零件与说明版本。演示版仅在本机保存意向单。</p>
+      <div class="order-modal-summary"><div><span id="orderModelName">火星前哨站</span><small id="orderModelMeta">0 件零件 · 1 套</small></div><strong id="orderModalPrice">¥0.00</strong></div>
+      <div class="quantity-row"><label>订购套数</label><div class="quantity-control"><button type="button" id="qtyMinus">−</button><input id="orderQty" value="1" inputmode="numeric" readonly><button type="button" id="qtyPlus">＋</button></div></div>
+      <div class="modal-fields"><label>称呼<input id="customerName" placeholder="怎么称呼你" required></label><label>联系方式<input id="customerContact" placeholder="手机号或邮箱" required></label></div>
+      <label class="order-note-label">备注（选填）<textarea id="orderNote" rows="2" placeholder="例如：希望作为生日礼物，包装尽量简洁"></textarea></label>
+      <label class="consent-row"><input type="checkbox" id="demoConsent" required><span>我已了解这是演示订购意向，不会产生真实支付或发货。</span></label>
+      <button type="submit" class="order-button" id="submitOrderBtn">生成订购意向单</button>
+      <p class="form-note">信息仅保存在当前浏览器，不会上传到服务器</p>
+    </form>
+  </dialog>
+
+  <dialog id="libraryDialog" class="modal">
+    <div class="modal-card library-card">
+      <button class="modal-close" id="closeLibrary" aria-label="关闭">×</button>
+      <span class="eyebrow">MY DESIGNS</span><h2>我的方案</h2><p class="modal-intro">保存在这台设备上的创意，随时继续设计。</p>
+      <div id="savedDesigns" class="saved-designs"></div>
+    </div>
+  </dialog>
+
+  <dialog id="helpDialog" class="modal">
+    <div class="modal-card help-card">
+      <button class="modal-close" id="closeHelp" aria-label="关闭">×</button>
+      <span class="eyebrow">QUICK GUIDE</span><h2>三步完成你的作品</h2>
+      <ol class="help-steps"><li><span>01</span><div><b>说出你的想法</b><p>输入模型、配色、年龄或预算，也可以使用左侧参数微调。</p></div></li><li><span>02</span><div><b>检查设计结果</b><p>切换成品、分层图纸、搭建步骤和 BOM 清单，所有内容来自同一模型。</p></div></li><li><span>03</span><div><b>导出或提交订购意向</b><p>下载图片、图纸、CSV 或完整 JSON；演示环境不会真实扣款。</p></div></li></ol>
+      <p class="help-note">提示：当前版本使用本地参数化生成引擎，无需 API Key，离线也能运行。</p>
+    </div>
+  </dialog>
+
+  <div class="toast-region" id="toastRegion" aria-live="polite"></div>
+  <div class="print-area" id="printArea"></div>
+  <script src="app.js"></script>
+</body>
+</html>
